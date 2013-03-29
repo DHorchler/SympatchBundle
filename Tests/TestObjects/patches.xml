@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<patches><patch name="patch001"><title><![CDATA[patch001]]></title><php><![CDATA[echo patch001 executing now;
+                   echo patch001 still executing;]]></php><status><![CDATA[active]]></status><file><![CDATA[vendor/dhorchler/sympatch-bundle/DHorchler/SympatchBundle/Tests/TestObjects/PatchCommand.txt]]></file><aftercode><![CDATA[
+             ->addOption('func', 'f', InputOption::VALUE_OPTIONAL)
+               //->addArgument('all', InputArgument::OPTIONAL, '')
+        ;
+]]></aftercode></patch><patch name="patch002"><title><![CDATA[patch002]]></title><php><![CDATA[echo patch002 executing now;
+                   echo patch002 executing now;]]></php><status><![CDATA[active]]></status><file><![CDATA[vendor/dhorchler/sympatch-bundle/DHorchler/SympatchBundle/Tests/TestObjects/PatchCommand.txt]]></file><beforeline><![CDATA[7]]></beforeline></patch><patch name="patch003"><title><![CDATA[patch003]]></title><php><![CDATA[echo patch003 executing now;
+                   echo patch003 executing now;]]></php><status><![CDATA[inactive]]></status><file><![CDATA[vendor/dhorchler/sympatch-bundle/DHorchler/SympatchBundle/Tests/TestObjects/PatchCommand.txt]]></file><beforeline><![CDATA[12]]></beforeline></patch></patches>
