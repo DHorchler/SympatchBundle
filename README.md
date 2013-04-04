@@ -50,8 +50,7 @@ keeping the XML structure in that file.
 
 ##usage:
 <pre>
-php app/console patch list
-php app/console patch listall
-php app/console patch update
-php app/console patch update {patchfile}
+php app/console patch --func=list
+php app/console patch --func=listall
+php app/console patch --func=update
 </pre>
