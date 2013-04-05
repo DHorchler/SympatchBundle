@@ -35,7 +35,7 @@ class PatchCommand extends ContainerAwareCommand
             $patches = simplexml_load_file($patchFile);
             $dom=new \DOMDocument;
             $dom->load($patchFile);
-            if (!$dom->schemaValidate(__DIR__.'/../Resources/patch/patches.xsd')) die('bad structure in XML file');
+            if (!$dom->schemaValidate(__DIR__.'/../Resources/patch/patches.xsd')) die('bad structured XML file');
             switch ($func)
             {
                 case 'list':
