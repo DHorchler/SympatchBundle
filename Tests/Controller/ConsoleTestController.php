@@ -3,25 +3,39 @@ use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
 use DHorchler\SympatchBundle\Command\PatchCommand;
 use DHorchler\SympatchBundle\Helpers\ExSimpleXMLElement;
+use Symfony\Component\Finder\Finder;
 
 class ListCommandTest extends \PHPUnit_Framework_TestCase
 {
     protected $patchesArray;    
     
     public function testExecute()
-    {
+    {//this test creates its own patch file /Resources/patch/patches_phpunittests.xml. There should be no other file /Resources/patch/patches_*phpunittests*.xml at testing time.
+        $finder = new Finder();
+        $finder->files()->in( __DIR__.'/../../Resources/patch/')->name('patches_*.xml');
+        if (count($finder) > 0) die(PHP_EOL.'please remove files /Resources/patch/patches_*.xml before starting the tests');
         $application = new Application();
         $application->add(new PatchCommand());
         $command = $application->find('patch');
         $commandTester = new CommandTester($command);
-        $patchFile =  __DIR__.'/../TestObjects/patches.xml';
+        $patchFile =  __DIR__.'/../../Resources/patch/patches_phpunittests.xml';
+        echo PHP_EOL.'creating patch file '.$patchFile.PHP_EOL;
         $this->createPatchFile($patchFile);
         $this->doSteps($commandTester, $command, $patchFile);
+        echo PHP_EOL.'deactivating all test patches'.PHP_EOL;
+        foreach ($this->patchesArray AS &$patchArray) $patchArray['status'] = 'inactive';
+        $this->savePatchFile($patchFile);
+        $commandTester->execute(array('command' => $command->getName(), '--func' => 'update'));
+        foreach ($this->patchesArray AS $patchArray)
+        {
+            $source = file_get_contents( __DIR__.'/../../../../../../../'.$patchArray['file']);
+            $this->assertNotContains('//start patch '.$patchArray['name'], $source, 'patch '.$patchArray['name'].' could not be removed');
+        }
     }
 
     protected function doSteps($commandTester, $command, $patchFile)
     {
-        $commandTester->execute(array('command' => $command->getName(), 'patchfile' => $patchFile, '--func' => 'listall'));
+        $commandTester->execute(array('command' => $command->getName(), '--func' => 'listall'));
         $display =  $commandTester->getDisplay();
         foreach ($this->patchesArray AS $patchArray)
         {
@@ -58,7 +72,7 @@ class ListCommandTest extends \PHPUnit_Framework_TestCase
             }
             else
             {
-                 $this->assertNotContains('//start patch '.$patchArray['name'], $source, true);
+                 $this->assertNotContains('//start patch '.$patchArray['name'], $source);
             }
         }
     }
@@ -68,23 +82,28 @@ class ListCommandTest extends \PHPUnit_Framework_TestCase
         $patchedFile = 'vendor/dhorchler/sympatch-bundle/DHorchler/SympatchBundle/Tests/TestObjects/PatchCommand.txt';
         $afterCode1 = PHP_EOL;//necessary fillpattern, will be stripped
         $afterCode1 .= <<<'EOT'
-             ->addOption('func', 'f', InputOption::VALUE_OPTIONAL)
-               //->addArgument('all', InputArgument::OPTIONAL, '')
+            ->addOption('func', 'f', InputOption::VALUE_OPTIONAL)
+            //->addArgument('all', InputArgument::OPTIONAL, '')
         ;
 EOT;
         $afterCode1 .= PHP_EOL;//necessary fillpattern, will be stripped
         
-        $php1 = 'echo patch001 executing now;
-                   echo patch001 still executing;';
-        $php2 = 'echo patch002 executing now;
-                   echo patch002 executing now;';
-        $php3 = 'echo patch003 executing now;
-                   echo patch003 executing now;';
+        $code1 = 'echo phpunittest_patch001 executing now;
+                   echo phpunittest_patch001 still executing;';
+        $code2 = 'echo phpunittest_patch002 executing now;
+                   echo phpunittest_patch002 executing now;';
+        $code3 = 'echo phpunittest_patch003 executing now;
+                   echo phpunittest_patch003 executing now;';
         $this->patchesArray = array(
-            array('name' => 'patch001', 'title' => 'patch001', 'php' => $php1, 'status' => 'active', 'file' => $patchedFile, 'beforecode' => '', 'aftercode' => $afterCode1, 'beforeline' => '', 'afterline' => ''),
-            array('name' => 'patch002', 'title' => 'patch002', 'php' => $php2, 'status' => 'active', 'file' => $patchedFile, 'beforecode' => '', 'afterCode' => '', 'beforeline' => 7, 'afterline' => ''),
-            array('name' => 'patch003', 'title' => 'patch003', 'php' => $php3, 'status' => 'inactive', 'file' => $patchedFile, 'beforecode' => '', 'aftercode' => '', 'beforeline' => 12, 'afterline' => ''),
+            array('name' => 'phpunittest_patch001', 'title' => 'phpunittest_patch001', 'comment' => 'comment1', 'status' => 'active', 'codetype' => 'php', 'file' => $patchedFile, 'aftercode' => $afterCode1, 'code' => $code1),
+            array('name' => 'phpunittest_patch002', 'title' => 'phpunittest_patch002', 'comment' => 'comment1', 'status' => 'active', 'codetype' => 'php', 'file' => $patchedFile, 'beforeline' => 7, 'code' => $code2),
+            array('name' => 'phpunittest_patch003', 'title' => 'phpunittest_patch003', 'comment' => 'comment1', 'status' => 'inactive', 'codetype' => 'php', 'file' => $patchedFile, 'beforeline' => 12, 'code' => $code3),
         );       
+        $this->savePatchFile($patchFile);
+    }
+
+    protected function savePatchFile($patchFile)
+    {
         $patchesXML = new ExSimpleXMLElement("<patches></patches>");
         foreach ($this->patchesArray AS $patchArray)
         {
