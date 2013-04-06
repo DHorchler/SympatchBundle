@@ -59,16 +59,18 @@ php app/console patch --func=deactivateall
 
 ##hints:
 
-- when specifying code locations in <beforecode> or <aftercode> tags, copy complete lines from the source file(s) to the xml file
 
-- when running the tests there should be no patch file in /Resources/patch (files like patches_*.xml)
+- when specifying code locations in \<beforecode\> or \<aftercode\> tags, copy complete lines from the source file(s) to the xml file
 
-- the use of <beforecode>, <aftercode> is encouraged over <beforeline>, <afterline> for two reasons:
-  more than one patch in the same file will not cause problems of keeping track of line numbers because of line shifts caused by each patch
-  better chance to have patches working after code base upgrades without modifications
+- before running the tests remove any patch file in /Resources/patch (files like patches_*.xml)
 
-- the deactivateall command has been added to allow code base upgrades without version collisions.
+- the use of \<beforecode\>, \<aftercode\> is encouraged over \<beforeline\>, \<afterline\> for two reasons:
+  more than one patch in the same file will not cause problems of keeping track of line numbers because of line shifts caused by each patch.
+  Chance are better to have patches working after code base upgrades without modifications.
+
+- the deactivateall command has been added to allow code base upgrades without version collisions. It will deactivate all patches disregarding the status that each patch has in the patch files.
   The sequence would be:
+
     - php app/console patch --func=deactivateall
     - do upgrades (e.g. php composer.phar update)
     - php app/console patch --func=update

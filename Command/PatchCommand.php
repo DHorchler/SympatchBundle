@@ -44,10 +44,11 @@ class PatchCommand extends ContainerAwareCommand
                     print_r(json_decode($json_string, TRUE));*/
                     foreach ($patches->patch AS $patch)
                     {
-                         $output->writeln('<fg=red>'.trim($patch['name']).' ('.$patch->status.')'.'</fg=red>');
+                         $patch['name'] = trim($patch['name']);
+                         $output->writeln('<fg=red>'.$patch['name'].' ('.$patch->status.')'.'</fg=red>');
                          if ($func == 'listall')
                          {
-                             $patchArray = explode('<br />', nl2br($patch->code));
+                             $patchArray = explode('<br />', nl2br($patch->insertcode));
                              $output->writeln('<fg=green>title: '.trim($patch->title).'</fg=green>');
                              $output->writeln('<fg=green>file: '.trim($patch->file).'</fg=green>');
                              if (strlen($patch->afterline) != 0) $output->writeln('<fg=green>after line: '.trim($patch->afterline).'</fg=green>');
@@ -70,7 +71,10 @@ class PatchCommand extends ContainerAwareCommand
                              if (!is_file($fn.'.org') AND !is_file($fn.'.bak')) file_put_contents($fn.'.org', $source);
                              file_put_contents($fn.'.bak', $source);
                              $lines = explode(PHP_EOL, $source);
-                             $searchString = '//start patch '.trim($patch['name']);
+                             if (count($lines) <= 1) $lines = explode("\n", $source);//maybe the file was saved in different surroundings
+                             if (count($lines) <= 1) $lines = explode("\r\n", $source);
+                             if (count($lines) <= 1) $lines = explode("\r", $source);                             
+                             $searchString = '//start patch '.$patch['name'];
                              $startFound = false;
                              $endFound = false;
                              $lastLines = array();
@@ -87,10 +91,10 @@ class PatchCommand extends ContainerAwareCommand
                              }
                              else
                              {
-                                 $patchArray = explode('<br />', nl2br($patch->code));
+                                 $patchArray = explode('<br />', nl2br($patch->insertcode));
                                  $formattedPatchArray = array();
                                  foreach ($patchArray AS $patchLine) if(trim($patchLine) != '') $formattedPatchArray[] = PHP_EOL.trim($patchLine);
-                                 $insertArray = array_merge(array(PHP_EOL.'//start patch '.trim($patch['name'])), $formattedPatchArray, array(PHP_EOL.'//end patch'.PHP_EOL));
+                                 $insertArray = array_merge(array(PHP_EOL.'//start patch '.$patch['name']), $formattedPatchArray, array(PHP_EOL.'//end patch'.PHP_EOL));
                                  $opciones = array('options' => array('default' => -1, 'min_range' => 0));
                                  $afterLine = filter_var(trim($patch->afterline), FILTER_VALIDATE_INT, $opciones);
                                  $beforeLine = filter_var(trim($patch->beforeline), FILTER_VALIDATE_INT, $opciones);
@@ -108,19 +112,18 @@ class PatchCommand extends ContainerAwareCommand
                                      array_shift($codeArray);//strip first and last empty line
                                      array_pop($codeArray);
                                      foreach ($codeArray AS &$codeLine) $codeLine = ltrim(str_replace('<BR />', '<br />', $codeLine), PHP_EOL);
-                                     //foreach ($codeArray AS &$ca) $ca = ltrim($ca);
                                      $startLine = 0;
                                      $found = false;
                                      foreach ($lines as $ln => $line)
                                      {
                                          for ($l = 0; $l < count($codeArray); $l++)
-                                         {//echo $l;if ($lines[$ln+$l] == '    public function contactAction()' OR $lines[$ln+$l] == '    {jj') echo PHP_EOL.$lines[$ln+$l].'xxx'.PHP_EOL.$codeArray[$l];
+                                         {//if ($patch['name'] == 'acme_patch001') {echo $l.$codeArray[$l].PHP_EOL.$lines[$ln+$l].PHP_EOL;}
                                              $found = true;
                                              if (($codeArray[$l] == '' AND $lines[$ln+$l] != '') OR ($codeArray[$l] != '' AND strpos($lines[$ln+$l], $codeArray[$l]) !== 0)) {$found = false; break 1;}
                                          }
                                          if ($found) {$startLine = $ln; break;}
                                      }
-                                     if (!$found) {die('<fg=red>Aborted: code location of patch '.$patch['name'].' not found</fg=red>');}
+                                     if (!$found) {$output->writeln('<fg=green>Aborted: code location of patch '.$patch['name'].' not found</fg=green>');die();}
                                      else
                                      { 
                                          if (trim($afterCode) != '') $startLine += count($codeArray);

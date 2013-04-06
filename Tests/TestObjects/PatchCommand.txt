@@ -19,10 +19,6 @@ class PatchCommand extends ContainerAwareCommand
             ->addOption('func', 'f', InputOption::VALUE_OPTIONAL)
             //->addArgument('all', InputArgument::OPTIONAL, '')
         ;
-//start patch patch002
-echo 'demo patch 2 executing';
-echo 'demo patch 2 executing';
-//end patch
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -31,6 +27,10 @@ echo 'demo patch 2 executing';
         $options = $input->getOptions();//print_r($options);
         $func = (isset($options['func']) AND $options['func'] != '')? $options['func']: 'list';
         $patches = new \SimpleXMLElement(file_get_contents(__DIR__.'/../Resources/patch/patches.xml'));
+//start patch patch002
+echo 'demo patch 2 executing';
+echo 'demo patch 2 still executing';
+//end patch
         switch ($func)        
         {
             case 'list':

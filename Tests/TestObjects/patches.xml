@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<patches><patch name="patch001"><title><![CDATA[patch001]]></title><comment><![CDATA[comment1]]></comment><status><![CDATA[active]]></status><codetype><![CDATA[php]]></codetype><file><![CDATA[vendor/dhorchler/sympatch-bundle/DHorchler/SympatchBundle/Tests/TestObjects/PatchCommand.txt]]></file><aftercode><![CDATA[
-             ->addOption('func', 'f', InputOption::VALUE_OPTIONAL)
-               //->addArgument('all', InputArgument::OPTIONAL, '')
-        ;
-]]></aftercode><code><![CDATA[echo patch001 executing now;
-                   echo patch001 still executing;]]></code></patch><patch name="patch002"><title><![CDATA[patch002]]></title><comment><![CDATA[comment1]]></comment><status><![CDATA[active]]></status><codetype><![CDATA[php]]></codetype><file><![CDATA[vendor/dhorchler/sympatch-bundle/DHorchler/SympatchBundle/Tests/TestObjects/PatchCommand.txt]]></file><beforeline><![CDATA[7]]></beforeline><code><![CDATA[echo patch002 executing now;
-                   echo patch002 executing now;]]></code></patch><patch name="patch003"><title><![CDATA[patch003]]></title><comment><![CDATA[comment1]]></comment><status><![CDATA[inactive]]></status><codetype><![CDATA[php]]></codetype><file><![CDATA[vendor/dhorchler/sympatch-bundle/DHorchler/SympatchBundle/Tests/TestObjects/PatchCommand.txt]]></file><beforeline><![CDATA[12]]></beforeline><code><![CDATA[echo patch003 executing now;
-                   echo patch003 executing now;]]></code></patch></patches>

@@ -89,16 +89,16 @@ class ListCommandTest extends \PHPUnit_Framework_TestCase
 EOT;
         $afterCode1 .= PHP_EOL;//necessary fillpattern, will be stripped
         
-        $code1 = 'echo phpunittest_patch001 executing now;
+        $insertcode1 = 'echo phpunittest_patch001 executing now;
                    echo phpunittest_patch001 still executing;';
-        $code2 = 'echo phpunittest_patch002 executing now;
+        $insertcode2 = 'echo phpunittest_patch002 executing now;
                    echo phpunittest_patch002 executing now;';
-        $code3 = 'echo phpunittest_patch003 executing now;
+        $insertcode3 = 'echo phpunittest_patch003 executing now;
                    echo phpunittest_patch003 executing now;';
         $this->patchesArray = array(
-            array('name' => 'phpunittest_patch001', 'title' => 'phpunittest_patch001', 'comment' => 'comment1', 'status' => 'active', 'codetype' => 'php', 'file' => $patchedFile, 'aftercode' => $afterCode1, 'code' => $code1),
-            array('name' => 'phpunittest_patch002', 'title' => 'phpunittest_patch002', 'comment' => 'comment1', 'status' => 'active', 'codetype' => 'php', 'file' => $patchedFile, 'beforeline' => 7, 'code' => $code2),
-            array('name' => 'phpunittest_patch003', 'title' => 'phpunittest_patch003', 'comment' => 'comment1', 'status' => 'inactive', 'codetype' => 'php', 'file' => $patchedFile, 'beforeline' => 12, 'code' => $code3),
+            array('name' => 'phpunittest_patch001', 'title' => 'phpunittest_patch001', 'comment' => 'comment1', 'status' => 'active', 'codetype' => 'php', 'file' => $patchedFile, 'aftercode' => $afterCode1, 'insertcode' => $insertcode1),
+            array('name' => 'phpunittest_patch002', 'title' => 'phpunittest_patch002', 'comment' => 'comment1', 'status' => 'active', 'codetype' => 'php', 'file' => $patchedFile, 'beforeline' => 7, 'insertcode' => $insertcode2),
+            array('name' => 'phpunittest_patch003', 'title' => 'phpunittest_patch003', 'comment' => 'comment1', 'status' => 'inactive', 'codetype' => 'php', 'file' => $patchedFile, 'beforeline' => 12, 'insertcode' => $insertcode3),
         );       
         $this->savePatchFile($patchFile);
     }
