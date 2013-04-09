@@ -11,9 +11,11 @@ class ListCommandTest extends \PHPUnit_Framework_TestCase
     
     public function testExecute()
     {//this test creates its own patch file /Resources/patch/patches_phpunittests.xml. There should be no other file /Resources/patch/patches_*phpunittests*.xml at testing time.
-        $finder = new Finder();
-        $finder->files()->in( __DIR__.'/../../Resources/patch/')->name('patches_*.xml');
-        if (count($finder) > 0) die(PHP_EOL.'please remove or rename files /Resources/patch/patches_*.xml before starting the tests');
+        $patchFileFinder = new Finder();
+        $patchFileFinder->files()->in( __DIR__.'/../../Resources/patch/')->name('patches_*.xml');
+        $renamedFiles = array();
+        foreach ($patchFileFinder AS $patchFile) {rename($patchFile, $patchFile.'.unittest'); $renamedFiles[] = $patchFile;}
+        //if (count($patchFileFinder) > 0) die(PHP_EOL.'please remove or rename files /Resources/patch/patches_*.xml before starting the tests');
         $application = new Application();
         $application->add(new PatchCommand());
         $command = $application->find('patch');
@@ -32,6 +34,7 @@ class ListCommandTest extends \PHPUnit_Framework_TestCase
             $this->assertNotContains('//start patch '.$patchArray['name'], $source, 'patch '.$patchArray['name'].' could not be removed');
         }
         unlink($patchFile);
+        foreach ($renamedFiles AS $renamedFile) rename($renamedFile.'.unittest', $renamedFile);
     }
 
     protected function doSteps($commandTester, $command, $patchFile)

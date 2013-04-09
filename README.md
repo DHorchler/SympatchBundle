@@ -62,7 +62,7 @@ php app/console patch --func=deactivateall
 
 - when specifying code locations in \<beforecode\> or \<aftercode\> tags, copy complete lines from the source file(s) to the xml file
 
-- before running the tests remove any patch file in /Resources/patch (files like patches_*.xml)
+- by running the tests any patch file in /Resources/patch like patches_*.xml is temporarily renamed to patches_*.xml.unittest
 
 - the use of \<beforecode\>, \<aftercode\> is encouraged over \<beforeline\>, \<afterline\> for two reasons:
   more than one patch in the same file will not cause problems of keeping track of line numbers because of line shifts caused by each patch.

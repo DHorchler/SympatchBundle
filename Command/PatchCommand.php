@@ -59,8 +59,27 @@ class PatchCommand extends ContainerAwareCommand
                          }
                     }
                     break;
-                case 'update':
                 case 'deactivateall':
+                    $fns = array();
+                    foreach ($patches->patch AS $patch)
+                    {
+                         $fns[] = __DIR__.'/../../../../../../'.trim($patch->file);
+                    }
+                    $fns = array_unique($fns);
+                    foreach($fns AS $fn)
+                    {
+                         if (is_file($fn.'.bak')) unlink($fn.'.bak');
+                         if (is_file($fn.'.org'))
+                         {
+                             unlink($fn);  rename($fn.'.org', $fn);
+                         }
+                         else
+                         {
+                            $output->writeln('<fg=red>Caution! File '.$fn.'.org was not found! Manual action required.</red>'); 
+                         }
+                    }
+                    break;
+                case 'update':
                     foreach ($patches->patch AS $patch)
                     {
                          $output->writeln('<fg=green>updating patch '.$patch['name'].' ('.$patch->status.')'.'</fg=green>');
