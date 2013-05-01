@@ -83,83 +83,90 @@ class PatchCommand extends ContainerAwareCommand
                     foreach ($patches->patch AS $patch)
                     {
                          $output->writeln('<fg=green>updating patch '.$patch['name'].' ('.$patch->status.')'.'</fg=green>');
-                         $fn = __DIR__.'/../../../../../../'.trim($patch->file);
-                         if (is_writable($fn))
-                         {
-                             $source = file_get_contents($fn);
-                             if (!is_file($fn.'.org') AND !is_file($fn.'.bak')) file_put_contents($fn.'.org', $source);
-                             file_put_contents($fn.'.bak', $source);
-                             $lines = explode(PHP_EOL, $source);
-                             if (count($lines) <= 1) $lines = explode("\n", $source);//maybe the file was saved in different surroundings
-                             if (count($lines) <= 1) $lines = explode("\r\n", $source);
-                             if (count($lines) <= 1) $lines = explode("\r", $source);                             
-                             $searchString = '//start patch '.$patch['name'];
-                             $startFound = false;
-                             $endFound = false;
-                             $lastLines = array();
-                             foreach ($lines as $ln => $line)
-                             {
-                                 if (strpos($line, $searchString) !== false)
-                                 {
-                                     if ($startFound) {$endFound = true; $endLine = $ln; break;} else {$startFound = true; $startLine = $ln; $searchString = '//end patch';}
-                                 }
-                             }
-                             if ($func == 'deactivateall' OR $patch->status != 'active')
-                             {
-                                 $newSource = ($startFound AND $endFound)? implode (PHP_EOL, array_slice($lines, 0, $startLine)).PHP_EOL.implode(PHP_EOL, array_slice($lines, $endLine+1)): $source;
-                             }
-                             else
-                             {
-                                 $patchArray = explode('<br />', nl2br($patch->insertcode));
-                                 $formattedPatchArray = array();
-                                 foreach ($patchArray AS $patchLine) if(trim($patchLine) != '') $formattedPatchArray[] = PHP_EOL.trim($patchLine);
-                                 $insertArray = array_merge(array(PHP_EOL.'//start patch '.$patch['name']), $formattedPatchArray, array(PHP_EOL.'//end patch'.PHP_EOL));
-                                 $opciones = array('options' => array('default' => -1, 'min_range' => 0));
-                                 $afterLine = filter_var(trim($patch->afterline), FILTER_VALIDATE_INT, $opciones);
-                                 $beforeLine = filter_var(trim($patch->beforeline), FILTER_VALIDATE_INT, $opciones);
-                                 $afterCode = $patch->aftercode;
-                                 $beforeCode = $patch->beforecode;
-                                 if (($afterLine > 0 AND $beforeLine > 0) OR ($afterCode != '' AND $beforeCode != '')) {$output->writeln('<fg=red>Aborted: cannot determine patch location. Possible tags: <afterline>, <beforeline>, <aftercode>, <beforecode>.</fg=red>');exit();}
-                                 if ($startFound AND $endFound) array_splice($lines, $startLine, $endLine-$startLine+1);                                 
-                                 if ($afterLine >= 0 AND $afterLine <= count($lines)) $newSource = implode (PHP_EOL, array_slice($lines, 0, $afterLine)).implode('', $insertArray).implode(PHP_EOL, array_slice($lines, $afterLine));
-                                 if ($beforeLine >= 0 AND $beforeLine <= count($lines)) $newSource = implode (PHP_EOL, array_slice($lines, 0, $beforeLine-1)).implode('', $insertArray).implode(PHP_EOL, array_slice($lines, $beforeLine-1));
-                                 if (trim($beforeCode) != '' OR trim($afterCode) != '')
-                                 {
-                                     $beforeCode = str_replace('<br />', '<BR />', $beforeCode);//mask '<br />' string
-                                     $afterCode = str_replace('<br />', '<BR />', $afterCode);
-                                     $codeArray = (trim($beforeCode) != '')? explode('<br />', nl2br($beforeCode)): explode('<br />', nl2br($afterCode));
-                                     array_shift($codeArray);//strip first and last empty line
-                                     array_pop($codeArray);
-                                     foreach ($codeArray AS &$codeLine) $codeLine = ltrim(str_replace('<BR />', '<br />', $codeLine), PHP_EOL);
-                                     $startLine = 0;
-                                     $found = false;
-                                     foreach ($lines as $ln => $line)
-                                     {
-                                         for ($l = 0; $l < count($codeArray); $l++)
-                                         {//if ($patch['name'] == 'acme_patch001') {echo $l.$codeArray[$l].PHP_EOL.$lines[$ln+$l].PHP_EOL;}
-                                             $found = true;
-                                             if (($codeArray[$l] == '' AND $lines[$ln+$l] != '') OR ($codeArray[$l] != '' AND strpos($lines[$ln+$l], $codeArray[$l]) !== 0)) {$found = false; break 1;}
-                                         }
-                                         if ($found) {$startLine = $ln; break;}
-                                     }
-                                     if (!$found) {$output->writeln('<fg=green>Aborted: code location of patch '.$patch['name'].' not found</fg=green>');die();}
-                                     else
-                                     { 
-                                         if (trim($afterCode) != '') $startLine += count($codeArray);
-                                         $newSource = implode (PHP_EOL, array_slice($lines, 0, $startLine)).implode('', $insertArray).implode(PHP_EOL, array_slice($lines, $startLine));
-                                     }
-                                 }
-                             }
-                             file_put_contents($fn, $newSource);
-                         }
-                         else
-                         {
-                             echo PHP_EOL.'Aborted: file '.$fn.' is not writable!';exit();
-                         }
+                         $this->updatePatch($patch, $func);
                          $output->writeln('<fg=green>patch '.$patch['name'].' ('.$patch->status.')'.' has been updated</fg=green>');
                     }
                     break;
             }
         }
+    }
+    
+    
+    static function updatePatch($patch, $func)
+    {
+         $fn = __DIR__.'/../../../../../../'.trim($patch->file);
+         if (is_writable($fn))
+         {
+             $source = file_get_contents($fn);
+             if (!is_file($fn.'.org') AND !is_file($fn.'.bak')) file_put_contents($fn.'.org', $source);
+             file_put_contents($fn.'.bak', $source);
+             $lines = explode(PHP_EOL, $source);
+             if (count($lines) <= 1) $lines = explode("\n", $source);//maybe the file was saved in different surroundings
+             if (count($lines) <= 1) $lines = explode("\r\n", $source);
+             if (count($lines) <= 1) $lines = explode("\r", $source);                             
+             $searchString = '//start patch '.$patch['name'];
+             $startFound = false;
+             $endFound = false;
+             $lastLines = array();
+             foreach ($lines as $ln => $line)
+             {
+                 if (strpos($line, $searchString) !== false)
+                 {
+                     if ($startFound) {$endFound = true; $endLine = $ln; break;} else {$startFound = true; $startLine = $ln; $searchString = '//end patch';}
+                 }
+             }
+             if ($func == 'deactivateall' OR $patch->status != 'active')
+             {
+                 $newSource = ($startFound AND $endFound)? implode (PHP_EOL, array_slice($lines, 0, $startLine)).PHP_EOL.implode(PHP_EOL, array_slice($lines, $endLine+1)): $source;
+             }
+             else
+             {
+                 $patchArray = explode('<br />', nl2br($patch->insertcode));
+                 $formattedPatchArray = array();
+                 foreach ($patchArray AS $patchLine) if(trim($patchLine) != '') $formattedPatchArray[] = PHP_EOL.trim($patchLine);
+                 $insertArray = array_merge(array(PHP_EOL.'//start patch '.$patch['name']), $formattedPatchArray, array(PHP_EOL.'//end patch'.PHP_EOL));
+                 $opciones = array('options' => array('default' => -1, 'min_range' => 0));
+                 $afterLine = filter_var(trim($patch->afterline), FILTER_VALIDATE_INT, $opciones);
+                 $beforeLine = filter_var(trim($patch->beforeline), FILTER_VALIDATE_INT, $opciones);
+                 $afterCode = $patch->aftercode;
+                 $beforeCode = $patch->beforecode;
+                 if (($afterLine > 0 AND $beforeLine > 0) OR ($afterCode != '' AND $beforeCode != '')) {$output->writeln('<fg=red>Aborted: cannot determine patch location. Possible tags: <afterline>, <beforeline>, <aftercode>, <beforecode>.</fg=red>');exit();}
+                 if ($startFound AND $endFound) array_splice($lines, $startLine, $endLine-$startLine+1);                                 
+                 if ($afterLine >= 0 AND $afterLine <= count($lines)) $newSource = implode (PHP_EOL, array_slice($lines, 0, $afterLine)).implode('', $insertArray).implode(PHP_EOL, array_slice($lines, $afterLine));
+                 if ($beforeLine >= 0 AND $beforeLine <= count($lines)) $newSource = implode (PHP_EOL, array_slice($lines, 0, $beforeLine-1)).implode('', $insertArray).implode(PHP_EOL, array_slice($lines, $beforeLine-1));
+                 if (trim($beforeCode) != '' OR trim($afterCode) != '')
+                 {
+                     $beforeCode = str_replace('<br />', '<BR />', $beforeCode);//mask '<br />' string
+                     $afterCode = str_replace('<br />', '<BR />', $afterCode);
+                     $codeArray = (trim($beforeCode) != '')? explode('<br />', nl2br($beforeCode)): explode('<br />', nl2br($afterCode));
+                     array_shift($codeArray);//strip first and last empty line
+                     array_pop($codeArray);
+                     foreach ($codeArray AS &$codeLine) $codeLine = ltrim(str_replace('<BR />', '<br />', $codeLine), PHP_EOL);
+                     $startLine = 0;
+                     $found = false;
+                     foreach ($lines as $ln => $line)
+                     {
+                         for ($l = 0; $l < count($codeArray); $l++)
+                         {
+                             $found = true;
+                             if (($codeArray[$l] == '' AND $lines[$ln+$l] != '') OR ($codeArray[$l] != '' AND strpos($lines[$ln+$l], $codeArray[$l]) !== 0)) {$found = false; break 1;}
+                         }
+                         if ($found) {$startLine = $ln; break;}
+                     }
+                     if (!$found) die('Aborted: code location of patch '.$patch['name'].' not found');
+                     else
+                     {
+                         if (trim($afterCode) != '') $startLine += count($codeArray);
+                         $newSource = implode (PHP_EOL, array_slice($lines, 0, $startLine)).implode('', $insertArray).implode(PHP_EOL, array_slice($lines, $startLine));
+                     }
+                 }
+             }
+             if (!isset($newSource)) die('something went wrong processing patch '.$patch['name'].'. Check if line numbers are within range.');
+             file_put_contents($fn, $newSource);
+         }
+         else
+         {
+             echo PHP_EOL.'Aborted: file '.$fn.' is not writable!';exit();
+         }
     }
 }

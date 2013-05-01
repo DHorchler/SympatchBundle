@@ -5,17 +5,17 @@ use DHorchler\SympatchBundle\Command\PatchCommand;
 use DHorchler\SympatchBundle\Helpers\ExSimpleXMLElement;
 use Symfony\Component\Finder\Finder;
 
-class ListCommandTest extends \PHPUnit_Framework_TestCase
+class PatchCommandTest extends \PHPUnit_Framework_TestCase
 {
-    protected $patchesArray;    
-    
+    protected $patchesArray;
+
+    //this test creates its own patch file /Resources/patch/patches_phpunittests.xml. Files /Resources/patch/patches_*.xml will be renamed to /Resources/patch/patches_*.xml.unittest at testing time.
     public function testExecute()
-    {//this test creates its own patch file /Resources/patch/patches_phpunittests.xml. There should be no other file /Resources/patch/patches_*phpunittests*.xml at testing time.
+    {
         $patchFileFinder = new Finder();
         $patchFileFinder->files()->in( __DIR__.'/../../Resources/patch/')->name('patches_*.xml');
         $renamedFiles = array();
         foreach ($patchFileFinder AS $patchFile) {rename($patchFile, $patchFile.'.unittest'); $renamedFiles[] = $patchFile;}
-        //if (count($patchFileFinder) > 0) die(PHP_EOL.'please remove or rename files /Resources/patch/patches_*.xml before starting the tests');
         $application = new Application();
         $application->add(new PatchCommand());
         $command = $application->find('patch');
@@ -33,7 +33,9 @@ class ListCommandTest extends \PHPUnit_Framework_TestCase
             $source = file_get_contents( __DIR__.'/../../../../../../../'.$patchArray['file']);
             $this->assertNotContains('//start patch '.$patchArray['name'], $source, 'patch '.$patchArray['name'].' could not be removed');
         }
+        echo PHP_EOL.'deleting patch test file'.PHP_EOL;
         unlink($patchFile);
+        echo PHP_EOL.'renaming existing patch files'.PHP_EOL;
         foreach ($renamedFiles AS $renamedFile) rename($renamedFile.'.unittest', $renamedFile);
     }
 
@@ -108,15 +110,12 @@ EOT;
 
     protected function savePatchFile($patchFile)
     {
-        $patchesXML = new ExSimpleXMLElement("<patches></patches>");
+        $patchesXML = new ExSimpleXMLElement("<patches><processed>yes</processed></patches>");
         foreach ($this->patchesArray AS $patchArray)
         {
             $patchXML = $patchesXML->addChild('patch');
             $patchXML->addAttribute('name', $patchArray['name']);
-            foreach ($patchArray AS $key => $value)
-            {
-                if ($key != 'name' AND $value != '') $patchXML->addChildCData($key, $value); 
-            }
+            foreach ($patchArray AS $key => $value) if ($key != 'name' AND $value != '') $patchXML->addChildCData($key, $value);
             file_put_contents($patchFile, $patchesXML->asXML());
         }
     }

@@ -2,7 +2,8 @@
 namespace DHorchler\SympatchBundle\Command;
 
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
-use Symfony\Component\Console\Input\InputArgument;use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DomCrawler\Crawler;
@@ -27,11 +28,7 @@ class PatchCommand extends ContainerAwareCommand
         $options = $input->getOptions();//print_r($options);
         $func = (isset($options['func']) AND $options['func'] != '')? $options['func']: 'list';
         $patches = new \SimpleXMLElement(file_get_contents(__DIR__.'/../Resources/patch/patches.xml'));
-//start patch patch002
-echo 'demo patch 2 executing';
-echo 'demo patch 2 still executing';
-//end patch
-        switch ($func)        
+        switch ($func)
         {
             case 'list':
             case 'listall':
@@ -40,7 +37,8 @@ echo 'demo patch 2 still executing';
                 foreach ($patches->patch AS $patch)
                 {
                      $output->writeln('<fg=red>'.trim($patch['name']).' ('.$patch->status.')'.'</fg=red>');
-                     if ($func == 'listall')                     { 
+                     if ($func == 'listall')
+                     {
                          $patchArray = explode('<br />', nl2br($patch->php));
                          $output->writeln('<fg=green>title: '.trim($patch->title).'</fg=green>');
                          $output->writeln('<fg=green>file: '.trim($patch->file).'</fg=green>');

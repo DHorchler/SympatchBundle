@@ -1,1 +1,45 @@
-<?xml version="1.0" encoding="UTF-8"?><!--  author: Detlef Horchler    remarks:  - <file> : enter the name of the file that should be patched relative to your root directory  - <beforecode>,<aftercode> : to define the location of the patch inside the source file to be patched copy as many lines as necessary from the original file to define a unique location.    If the location is not unique, the first location within the file will be used.    Do not change the lines that hold the <beforecode>, </beforecode>, <aftercode> and </aftercode> tags.  -  //--><patches>    <patch name="acme_patch001">        <title>acme patch 1</title>        <comment>example for overriding a complete PHP function</comment>        <status>active</status>	<codetype>php</codetype>	<file>            src/Acme/DemoBundle/Controller/DemoController.php        </file>	<beforecode><![CDATA[    public function indexAction()    {        return array();    }        ]]></beforecode>	<insertcode><![CDATA[/*        ]]></insertcode>    </patch>    <patch name="acme_patch002">        <title>acme patch 2</title>        <comment>example for overriding a complete PHP function</comment>        <status>active</status>	<codetype>php</codetype>	<file>            src/Acme/DemoBundle/Controller/DemoController.php        </file>	<aftercode><![CDATA[    public function indexAction()    {        return array();    }        ]]></aftercode>	<insertcode><![CDATA[   */public function indexAction()    {        echo 'acme_patch002 executing';        return array();    }        ]]></insertcode>    </patch></patches>
+<?xml version="1.0"?>
+<patches>
+    <processed>yes</processed>
+    <patch name="acme_patch001">
+        <title>acme patch 1</title>
+        <comment>example for overriding a complete PHP function</comment>
+        <status>active</status>
+	<codetype>php</codetype>
+	<file>
+            src/Acme/DemoBundle/Controller/DemoController.php
+        </file>
+	<beforecode><![CDATA[
+    public function indexAction()
+    {
+        return array();
+    }
+        ]]></beforecode>
+	<insertcode><![CDATA[
+/*
+        ]]></insertcode>
+    </patch>
+
+    <patch name="acme_patch002">
+        <title>acme patch 2</title>
+        <comment>example for overriding a complete PHP function</comment>
+        <status>active</status>
+	<codetype>php</codetype>
+	<file>
+            src/Acme/DemoBundle/Controller/DemoController.php
+        </file>
+	<aftercode><![CDATA[
+    public function indexAction()
+    {
+        return array();
+    }
+        ]]></aftercode>
+	<insertcode><![CDATA[
+   */public function indexAction()
+    {
+        echo 'acme_patch002 executing';
+        return array();
+    }
+        ]]></insertcode>
+    </patch>
+</patches>
