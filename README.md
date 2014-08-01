@@ -2,6 +2,9 @@ Sympatch
 ========
 
 Symfony2 code patch tool
+
+This bundle has been discontinued
+
 #Information
 
 DHorchlerSympatchBundle consists in a tool that enables you to patch code parts anywhere in your Symfony project (including vendors).
